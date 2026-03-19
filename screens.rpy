@@ -350,61 +350,132 @@ style navigation_button_text:
 ##
 ## https://www.renpy.org/doc/html/screen_special.html#main-menu
 
+## Концепция «Небесный атлас»: старинная карта звёздного неба на пергаменте.
+## Цвета: пергамент (f5ebd2), индиго (191970), янтарь (ffc864), алый при наведении (b41e1e).
+
 screen main_menu():
 
-    ## Этот тег гарантирует, что любой другой экран с тем же тегом будет
-    ## заменять этот.
     tag menu
 
-    add gui.main_menu_background
+    ## Цвета текущей темы ───────────────────────────────────────────────────────
+    $ _theme = persistent.menu_bg or "parchment"
+    $ _bg  = {"parchment": "#f5ebd2", "midnight": "#050a14", "indigo": "#0d0a2e"}.get(_theme, "#f5ebd2")
+    $ _fg  = {"parchment": "#191970", "midnight": "#d0c8a8", "indigo": "#c8bce8"}.get(_theme, "#191970")
+    $ _hov = {"parchment": "#b41e1e", "midnight": "#ffc864", "indigo": "#d0a0ff"}.get(_theme, "#b41e1e")
 
-    ## Эта пустая рамка затеняет главное меню.
-    frame:
-        style "main_menu_frame"
+    ## Фон ──────────────────────────────────────────────────────────────────────
+    add Solid(_bg)
 
-    ## Оператор use включает отображение другого экрана в данном. Актуальное
-    ## содержание главного меню находится на экране навигации.
-    use navigation
+    ## Звёзды-украшения по краям экрана ─────────────────────────────────────────
+    for st_x, st_y, st_sz, st_sym in [
+            (70,   45, 22, "✦"), (190, 135, 14, "✧"), (330,  70, 10, "★"),
+            (550, 165, 12, "✦"), (740,  48,  9, "✧"), (960, 115, 16, "★"),
+            (1200, 58, 11, "✦"), (1410, 138, 13, "✧"), (1630,  52, 10, "★"),
+            (1760, 175, 18, "✦"), (1875,  88, 12, "✧"),
+            (58,  835, 14, "✧"), (255, 952, 10, "✦"), (505, 898, 12, "★"),
+            (785, 972, 11, "✦"), (1055, 918,  9, "✧"), (1285, 985, 14, "★"),
+            (1505, 942, 11, "✦"), (1710, 908, 13, "✧"), (1882, 972, 10, "★"),
+            (28,  355, 10, "✦"), (28,  610,  8, "✧"),
+            (1900, 405, 11, "✦"), (1900, 655,  9, "✧"),
+    ]:
+        text st_sym:
+            xpos st_x
+            ypos st_y
+            size st_sz
+            color "#ffc864"
 
-    if gui.show_name:
+    ## Горизонтальные разделители ────────────────────────────────────────────────
+    text "─ ─ ─  ✦  ─ ─ ─":
+        xalign 0.5
+        ypos 318
+        size 22
+        color "#ffc864"
 
-        vbox:
-            style "main_menu_vbox"
+    text "─ ─ ─  ✦  ─ ─ ─":
+        xalign 0.5
+        ypos 785
+        size 22
+        color "#ffc864"
 
-            text "[config.name!t]":
-                style "main_menu_title"
+    ## Заголовок ─────────────────────────────────────────────────────────────────
+    vbox:
+        xalign 0.5
+        ypos 128
+        spacing 14
 
-            text "[config.version]":
-                style "main_menu_version"
+        text "ВЕДЬМИН ЧАС":
+            xalign 0.5
+            size 88
+            color _fg
+
+        text "☽  ✦  ☾":
+            xalign 0.5
+            size 30
+            color "#ffc864"
+
+        text "Хроника Полуночного часа":
+            xalign 0.5
+            size 22
+            color _fg
+
+    ## Кнопки навигации (астрономические символы) ─────────────────────────────────
+    vbox:
+        xalign 0.5
+        yalign 0.60
+        spacing 22
+
+        textbutton "☾   Новая игра":
+            action Start()
+            style "main_celestial_button"
+            text_color _fg
+            text_hover_color _hov
+
+        if renpy.newest_slot():
+            textbutton "✧   Продолжить":
+                action FileLoad(renpy.newest_slot())
+                style "main_celestial_button"
+                text_color _fg
+                text_hover_color _hov
+
+        textbutton "☼   Загрузить":
+            action ShowMenu("load")
+            style "main_celestial_button"
+            text_color _fg
+            text_hover_color _hov
+
+        textbutton "♰   Настройки":
+            action ShowMenu("preferences")
+            style "main_celestial_button"
+            text_color _fg
+            text_hover_color _hov
+
+        if renpy.variant("pc"):
+            textbutton "✦   Выход":
+                action Quit(confirm=True)
+                style "main_celestial_button"
+                text_color _fg
+                text_hover_color _hov
+
+    ## Версия ────────────────────────────────────────────────────────────────────
+    text "[config.version]":
+        xalign 0.99
+        yalign 0.99
+        xoffset -20
+        yoffset -15
+        size 16
+        color _fg
 
 
-style main_menu_frame is empty
-style main_menu_vbox is vbox
-style main_menu_text is gui_text
-style main_menu_title is main_menu_text
-style main_menu_version is main_menu_text
+style main_celestial_button is empty:
+    xsize 380
+    ysize 58
+    padding (30, 8)
+    background None
 
-style main_menu_frame:
-    xsize 420
-    yfill True
-
-    background "gui/overlay/main_menu.png"
-
-style main_menu_vbox:
-    xalign 1.0
-    xoffset -30
-    xmaximum 1200
-    yalign 1.0
-    yoffset -30
-
-style main_menu_text:
-    properties gui.text_properties("main_menu", accent=True)
-
-style main_menu_title:
-    properties gui.text_properties("title")
-
-style main_menu_version:
-    properties gui.text_properties("version")
+style main_celestial_button_text:
+    size 32
+    font gui.interface_text_font
+    xalign 0.0
 
 
 ## Экран игрового меню #########################################################
@@ -582,7 +653,7 @@ style about_label_text:
 ## как они почти одинаковые, оба реализованы по правилам третьего экрана —
 ## file_slots.
 ##
-## https://www.renpy.org/doc/html/screen_special.html#save 
+## https://www.renpy.org/doc/html/screen_special.html#save
 
 screen save():
 
@@ -755,8 +826,19 @@ screen preferences():
                     textbutton _("После выборов") action Preference("after choices", "toggle")
                     textbutton _("Переходов") action InvertSelected(Preference("transitions", "toggle"))
 
-                ## Дополнительные vbox'ы типа "radio_pref" или "check_pref"
-                ## могут быть добавлены сюда для добавления новых настроек.
+                ## Выбор фона главного меню ──────────────────────────────────────────
+                vbox:
+                    style_prefix "radio"
+                    label _("Фон меню")
+                    textbutton _("Пергамент"):
+                        action SetField(persistent, "menu_bg", "parchment")
+                        selected persistent.menu_bg == "parchment"
+                    textbutton _("Полночь"):
+                        action SetField(persistent, "menu_bg", "midnight")
+                        selected persistent.menu_bg == "midnight"
+                    textbutton _("Индиго"):
+                        action SetField(persistent, "menu_bg", "indigo")
+                        selected persistent.menu_bg == "indigo"
 
             null height (4 * gui.pref_spacing)
 
