@@ -1081,14 +1081,31 @@ screen preferences():
                             text_hover_color _hov
                             text_selected_color "#ffc864"
 
-    ## Кнопка «Вернуться» ────────────────────────────────────────────────────────
-    textbutton "✦   Вернуться":
-        action Return()
-        style "main_celestial_button"
-        text_color _fg
-        text_hover_color _hov
+    ## Кнопки навигации ──────────────────────────────────────────────────────────
+    hbox:
         xalign 0.5
         yalign 0.97
+        spacing 40
+
+        textbutton "✦   Вернуться":
+            action Return()
+            style "main_celestial_button"
+            text_color _fg
+            text_hover_color _hov
+
+        if not main_menu:
+            textbutton "☽   Главное меню":
+                action MainMenu()
+                style "main_celestial_button"
+                text_color _fg
+                text_hover_color _hov
+
+            if renpy.variant("pc"):
+                textbutton "✧   Выход":
+                    action Quit(confirm=True)
+                    style "main_celestial_button"
+                    text_color _fg
+                    text_hover_color _hov
 
 
 style pref_celestial_button is empty:
@@ -1124,36 +1141,121 @@ screen history():
     ## массивным.
     predict False
 
-    use game_menu(_("История"), scroll=("vpgrid" if gui.history_height else "viewport"), yinitial=1.0, spacing=gui.history_spacing):
+    ## Цвета текущей темы ───────────────────────────────────────────────────────
+    $ _theme = persistent.menu_bg or "parchment"
+    $ _bg  = {"parchment": "#f5ebd2", "midnight": "#050a14", "indigo": "#0d0a2e"}.get(_theme, "#f5ebd2")
+    $ _fg  = {"parchment": "#191970", "midnight": "#d0c8a8", "indigo": "#c8bce8"}.get(_theme, "#191970")
+    $ _hov = {"parchment": "#b41e1e", "midnight": "#ffc864", "indigo": "#d0a0ff"}.get(_theme, "#b41e1e")
 
-        style_prefix "history"
+    ## Фон ──────────────────────────────────────────────────────────────────────
+    add Solid(_bg)
 
-        for h in _history_list:
+    ## Звёзды-украшения по краям экрана ─────────────────────────────────────────
+    for st_x, st_y, st_sz, st_sym in [
+            (70,   45, 22, "✦"), (190, 135, 14, "✧"), (330,  70, 10, "★"),
+            (550, 165, 12, "✦"), (740,  48,  9, "✧"), (960, 115, 16, "★"),
+            (1200, 58, 11, "✦"), (1410, 138, 13, "✧"), (1630,  52, 10, "★"),
+            (1760, 175, 18, "✦"), (1875,  88, 12, "✧"),
+            (58,  835, 14, "✧"), (255, 952, 10, "✦"), (505, 898, 12, "★"),
+            (785, 972, 11, "✦"), (1055, 918,  9, "✧"), (1285, 985, 14, "★"),
+            (1505, 942, 11, "✦"), (1710, 908, 13, "✧"), (1882, 972, 10, "★"),
+            (28,  355, 10, "✦"), (28,  610,  8, "✧"),
+            (1900, 405, 11, "✦"), (1900, 655,  9, "✧"),
+    ]:
+        text st_sym:
+            xpos st_x
+            ypos st_y
+            size st_sz
+            color "#ffc864"
 
-            window:
+    ## Горизонтальные разделители ────────────────────────────────────────────────
+    text "─ ─ ─  ✦  ─ ─ ─":
+        xalign 0.5
+        ypos 222
+        size 22
+        color "#ffc864"
 
-                ## Это всё правильно уравняет, если history_height будет
-                ## установлен на None.
-                has fixed:
-                    yfit True
+    text "─ ─ ─  ✦  ─ ─ ─":
+        xalign 0.5
+        ypos 916
+        size 22
+        color "#ffc864"
 
-                if h.who:
+    ## Заголовок ─────────────────────────────────────────────────────────────────
+    vbox:
+        xalign 0.5
+        ypos 68
+        spacing 10
 
-                    label h.who:
-                        style "history_name"
+        text "ИСТОРИЯ":
+            xalign 0.5
+            size 80
+            color _fg
+
+        text "☽  ✦  ☾":
+            xalign 0.5
+            size 26
+            color "#ffc864"
+
+    ## Список диалогов ────────────────────────────────────────────────────────────
+    viewport:
+        xalign 0.5
+        ypos 248
+        xsize 1400
+        ysize 650
+        scrollbars "vertical"
+        mousewheel True
+        draggable True
+        pagekeys True
+        yinitial 1.0
+
+        vbox:
+            xfill True
+            spacing gui.history_spacing
+
+            for h in _history_list:
+
+                vbox:
+                    xfill True
+                    spacing 4
+
+                    if h.who:
+                        $ _who_color = h.who_args.get("color", "#ffc864")
+                        text h.who:
+                            substitute False
+                            color _who_color
+                            size 26
+
+                    $ what = renpy.filter_text_tags(h.what, allow=gui.history_allow_tags)
+                    text what:
                         substitute False
+                        color _fg
+                        size 26
 
-                        ## Берёт цвет из who параметра персонажа, если он
-                        ## установлен.
-                        if "color" in h.who_args:
-                            text_color h.who_args["color"]
+            if not _history_list:
+                text _("История диалогов пуста."):
+                    xalign 0.5
+                    color _fg
+                    size 28
 
-                $ what = renpy.filter_text_tags(h.what, allow=gui.history_allow_tags)
-                text what:
-                    substitute False
+    ## Кнопки навигации ──────────────────────────────────────────────────────────
+    hbox:
+        xalign 0.5
+        yalign 0.97
+        spacing 40
 
-        if not _history_list:
-            label _("История диалогов пуста.")
+        textbutton "✦   Вернуться":
+            action Return()
+            style "main_celestial_button"
+            text_color _fg
+            text_hover_color _hov
+
+        if not main_menu:
+            textbutton "☽   Главное меню":
+                action MainMenu()
+                style "main_celestial_button"
+                text_color _fg
+                text_hover_color _hov
 
 
 ## Это определяет, какие теги могут отображаться на экране истории.
