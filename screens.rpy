@@ -403,7 +403,7 @@ screen main_menu():
         ypos 128
         spacing 14
 
-        text "ВЕДЬМИН ЧАС":
+        text "ПОЛУНОЧНЫЙ ЧАС":
             xalign 0.5
             size 88
             color _fg
@@ -804,163 +804,252 @@ screen preferences():
 
     tag menu
 
-    use game_menu(_("Настройки"), scroll="viewport"):
+    ## Цвета текущей темы ───────────────────────────────────────────────────────
+    $ _theme = persistent.menu_bg or "parchment"
+    $ _bg  = {"parchment": "#f5ebd2", "midnight": "#050a14", "indigo": "#0d0a2e"}.get(_theme, "#f5ebd2")
+    $ _fg  = {"parchment": "#191970", "midnight": "#d0c8a8", "indigo": "#c8bce8"}.get(_theme, "#191970")
+    $ _hov = {"parchment": "#b41e1e", "midnight": "#ffc864", "indigo": "#d0a0ff"}.get(_theme, "#b41e1e")
+
+    ## Фон ──────────────────────────────────────────────────────────────────────
+    add Solid(_bg)
+
+    ## Звёзды-украшения по краям экрана ─────────────────────────────────────────
+    for st_x, st_y, st_sz, st_sym in [
+            (70,   45, 22, "✦"), (190, 135, 14, "✧"), (330,  70, 10, "★"),
+            (550, 165, 12, "✦"), (740,  48,  9, "✧"), (960, 115, 16, "★"),
+            (1200, 58, 11, "✦"), (1410, 138, 13, "✧"), (1630,  52, 10, "★"),
+            (1760, 175, 18, "✦"), (1875,  88, 12, "✧"),
+            (58,  835, 14, "✧"), (255, 952, 10, "✦"), (505, 898, 12, "★"),
+            (785, 972, 11, "✦"), (1055, 918,  9, "✧"), (1285, 985, 14, "★"),
+            (1505, 942, 11, "✦"), (1710, 908, 13, "✧"), (1882, 972, 10, "★"),
+            (28,  355, 10, "✦"), (28,  610,  8, "✧"),
+            (1900, 405, 11, "✦"), (1900, 655,  9, "✧"),
+    ]:
+        text st_sym:
+            xpos st_x
+            ypos st_y
+            size st_sz
+            color "#ffc864"
+
+    ## Горизонтальные разделители ────────────────────────────────────────────────
+    text "─ ─ ─  ✦  ─ ─ ─":
+        xalign 0.5
+        ypos 222
+        size 22
+        color "#ffc864"
+
+    text "─ ─ ─  ✦  ─ ─ ─":
+        xalign 0.5
+        ypos 916
+        size 22
+        color "#ffc864"
+
+    ## Заголовок ─────────────────────────────────────────────────────────────────
+    vbox:
+        xalign 0.5
+        ypos 68
+        spacing 10
+
+        text "НАСТРОЙКИ":
+            xalign 0.5
+            size 80
+            color _fg
+
+        text "☽  ✦  ☾":
+            xalign 0.5
+            size 26
+            color "#ffc864"
+
+    ## Содержимое ─────────────────────────────────────────────────────────────────
+    viewport:
+        xalign 0.5
+        ypos 248
+        xsize 1500
+        ysize 650
+        scrollbars "vertical"
+        mousewheel True
+        draggable True
 
         vbox:
+            xalign 0.5
+            spacing 40
 
             hbox:
+                xalign 0.5
                 box_wrap True
+                spacing 100
 
                 if renpy.variant("pc") or renpy.variant("web"):
-
                     vbox:
-                        style_prefix "radio"
-                        label _("Режим экрана")
-                        textbutton _("Оконный") action Preference("display", "window")
-                        textbutton _("Полный") action Preference("display", "fullscreen")
+                        spacing 14
+                        text _("Режим экрана"):
+                            size 28
+                            color "#ffc864"
+                        textbutton _("☾   Оконный"):
+                            action Preference("display", "window")
+                            style "pref_celestial_button"
+                            text_color _fg
+                            text_hover_color _hov
+                            text_selected_color "#ffc864"
+                        textbutton _("☽   Полный"):
+                            action Preference("display", "fullscreen")
+                            style "pref_celestial_button"
+                            text_color _fg
+                            text_hover_color _hov
+                            text_selected_color "#ffc864"
 
                 vbox:
-                    style_prefix "check"
-                    label _("Пропуск")
-                    textbutton _("Всего текста") action Preference("skip", "toggle")
-                    textbutton _("После выборов") action Preference("after choices", "toggle")
-                    textbutton _("Переходов") action InvertSelected(Preference("transitions", "toggle"))
+                    spacing 14
+                    text _("Пропуск"):
+                        size 28
+                        color "#ffc864"
+                    textbutton _("✧   Весь текст"):
+                        action Preference("skip", "toggle")
+                        style "pref_celestial_button"
+                        text_color _fg
+                        text_hover_color _hov
+                        text_selected_color "#ffc864"
+                    textbutton _("✧   После выборов"):
+                        action Preference("after choices", "toggle")
+                        style "pref_celestial_button"
+                        text_color _fg
+                        text_hover_color _hov
+                        text_selected_color "#ffc864"
+                    textbutton _("✧   Переходы"):
+                        action InvertSelected(Preference("transitions", "toggle"))
+                        style "pref_celestial_button"
+                        text_color _fg
+                        text_hover_color _hov
+                        text_selected_color "#ffc864"
 
-                ## Выбор фона главного меню ──────────────────────────────────────────
                 vbox:
-                    style_prefix "radio"
-                    label _("Фон меню")
-                    textbutton _("Пергамент"):
+                    spacing 14
+                    text _("Фон меню"):
+                        size 28
+                        color "#ffc864"
+                    textbutton _("★   Пергамент"):
                         action SetField(persistent, "menu_bg", "parchment")
                         selected persistent.menu_bg == "parchment"
-                    textbutton _("Полночь"):
+                        style "pref_celestial_button"
+                        text_color _fg
+                        text_hover_color _hov
+                        text_selected_color "#ffc864"
+                    textbutton _("★   Полночь"):
                         action SetField(persistent, "menu_bg", "midnight")
                         selected persistent.menu_bg == "midnight"
-                    textbutton _("Индиго"):
+                        style "pref_celestial_button"
+                        text_color _fg
+                        text_hover_color _hov
+                        text_selected_color "#ffc864"
+                    textbutton _("★   Индиго"):
                         action SetField(persistent, "menu_bg", "indigo")
                         selected persistent.menu_bg == "indigo"
+                        style "pref_celestial_button"
+                        text_color _fg
+                        text_hover_color _hov
+                        text_selected_color "#ffc864"
 
-            null height (4 * gui.pref_spacing)
+            null height 10
 
             hbox:
-                style_prefix "slider"
+                xalign 0.5
                 box_wrap True
+                spacing 100
 
                 vbox:
+                    spacing 16
+                    xsize 620
 
-                    label _("Скорость текста")
+                    text _("Скорость текста"):
+                        size 28
+                        color "#ffc864"
+                    bar value Preference("text speed"):
+                        style "pref_celestial_bar"
 
-                    bar value Preference("text speed")
+                    null height 6
 
-                    label _("Скорость авточтения")
-
-                    bar value Preference("auto-forward time")
+                    text _("Скорость авточтения"):
+                        size 28
+                        color "#ffc864"
+                    bar value Preference("auto-forward time"):
+                        style "pref_celestial_bar"
 
                 vbox:
+                    spacing 16
+                    xsize 620
 
                     if config.has_music:
-                        label _("Громкость музыки")
-
-                        hbox:
-                            bar value Preference("music volume")
+                        text _("Громкость музыки"):
+                            size 28
+                            color "#ffc864"
+                        bar value Preference("music volume"):
+                            style "pref_celestial_bar"
+                        null height 6
 
                     if config.has_sound:
-
-                        label _("Громкость звуков")
-
+                        text _("Громкость звуков"):
+                            size 28
+                            color "#ffc864"
                         hbox:
-                            bar value Preference("sound volume")
-
+                            bar value Preference("sound volume"):
+                                style "pref_celestial_bar"
                             if config.sample_sound:
-                                textbutton _("Тест") action Play("sound", config.sample_sound)
-
+                                textbutton _("Тест"):
+                                    action Play("sound", config.sample_sound)
+                                    style "pref_celestial_button"
+                                    text_color _fg
+                                    text_hover_color _hov
+                        null height 6
 
                     if config.has_voice:
-                        label _("Громкость голоса")
-
+                        text _("Громкость голоса"):
+                            size 28
+                            color "#ffc864"
                         hbox:
-                            bar value Preference("voice volume")
-
+                            bar value Preference("voice volume"):
+                                style "pref_celestial_bar"
                             if config.sample_voice:
-                                textbutton _("Тест") action Play("voice", config.sample_voice)
+                                textbutton _("Тест"):
+                                    action Play("voice", config.sample_voice)
+                                    style "pref_celestial_button"
+                                    text_color _fg
+                                    text_hover_color _hov
 
                     if config.has_music or config.has_sound or config.has_voice:
-                        null height gui.pref_spacing
-
-                        textbutton _("Без звука"):
+                        null height 10
+                        textbutton _("✦   Без звука"):
                             action Preference("all mute", "toggle")
-                            style "mute_all_button"
+                            style "pref_celestial_button"
+                            text_color _fg
+                            text_hover_color _hov
+                            text_selected_color "#ffc864"
+
+    ## Кнопка «Вернуться» ────────────────────────────────────────────────────────
+    textbutton "✦   Вернуться":
+        action Return()
+        style "main_celestial_button"
+        text_color _fg
+        text_hover_color _hov
+        xalign 0.5
+        yalign 0.97
 
 
-style pref_label is gui_label
-style pref_label_text is gui_label_text
-style pref_vbox is vbox
+style pref_celestial_button is empty:
+    xsize 340
+    ysize 50
+    padding (20, 8)
+    background None
 
-style radio_label is pref_label
-style radio_label_text is pref_label_text
-style radio_button is gui_button
-style radio_button_text is gui_button_text
-style radio_vbox is pref_vbox
+style pref_celestial_button_text:
+    size 28
+    font gui.interface_text_font
+    xalign 0.0
 
-style check_label is pref_label
-style check_label_text is pref_label_text
-style check_button is gui_button
-style check_button_text is gui_button_text
-style check_vbox is pref_vbox
-
-style slider_label is pref_label
-style slider_label_text is pref_label_text
-style slider_slider is gui_slider
-style slider_button is gui_button
-style slider_button_text is gui_button_text
-style slider_pref_vbox is pref_vbox
-
-style mute_all_button is check_button
-style mute_all_button_text is check_button_text
-
-style pref_label:
-    top_margin gui.pref_spacing
-    bottom_margin 3
-
-style pref_label_text:
-    yalign 1.0
-
-style pref_vbox:
-    xsize 338
-
-style radio_vbox:
-    spacing gui.pref_button_spacing
-
-style radio_button:
-    properties gui.button_properties("radio_button")
-    foreground "gui/button/radio_[prefix_]foreground.png"
-
-style radio_button_text:
-    properties gui.text_properties("radio_button")
-
-style check_vbox:
-    spacing gui.pref_button_spacing
-
-style check_button:
-    properties gui.button_properties("check_button")
-    foreground "gui/button/check_[prefix_]foreground.png"
-
-style check_button_text:
-    properties gui.text_properties("check_button")
-
-style slider_slider:
-    xsize 525
-
-style slider_button:
-    properties gui.button_properties("slider_button")
-    yalign 0.5
-    left_margin 15
-
-style slider_button_text:
-    properties gui.text_properties("slider_button")
-
-style slider_vbox:
-    xsize 675
+style pref_celestial_bar:
+    ysize 20
+    left_bar Solid("#ffc864")
+    right_bar Solid("#ffc86440")
+    xsize 540
 
 
 ## Экран истории ###############################################################
