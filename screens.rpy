@@ -51,14 +51,16 @@ style vbar:
     bottom_bar Frame("gui/bar/bottom.png", gui.vbar_borders, tile=gui.bar_tile)
 
 style scrollbar:
-    ysize gui.scrollbar_size
-    base_bar Frame("gui/scrollbar/horizontal_[prefix_]bar.png", gui.scrollbar_borders, tile=gui.scrollbar_tile)
-    thumb Frame("gui/scrollbar/horizontal_[prefix_]thumb.png", gui.scrollbar_borders, tile=gui.scrollbar_tile)
+    ysize 10
+    base_bar Solid("#ffc86422")
+    thumb Solid("#ffc864")
+    unscrollable "hide"
 
 style vscrollbar:
-    xsize gui.scrollbar_size
-    base_bar Frame("gui/scrollbar/vertical_[prefix_]bar.png", gui.vscrollbar_borders, tile=gui.scrollbar_tile)
-    thumb Frame("gui/scrollbar/vertical_[prefix_]thumb.png", gui.vscrollbar_borders, tile=gui.scrollbar_tile)
+    xsize 10
+    base_bar Solid("#ffc86422")
+    thumb Solid("#ffc864")
+    unscrollable "hide"
 
 style slider:
     ysize gui.slider_size
@@ -98,12 +100,14 @@ screen say(who, what):
 
     window:
         id "window"
+        background Solid("#0d0a2ed0")
 
         if who is not None:
 
             window:
                 id "namebox"
                 style "namebox"
+                background Solid("#ffc86438")
                 text who id "who"
 
         text what id "what"
@@ -413,11 +417,6 @@ screen main_menu():
             size 30
             color "#ffc864"
 
-        text "Хроника Полуночного часа":
-            xalign 0.5
-            size 22
-            color _fg
-
     ## Кнопки навигации (астрономические символы) ─────────────────────────────────
     vbox:
         xalign 0.5
@@ -659,139 +658,197 @@ screen save():
 
     tag menu
 
-    use file_slots(_("Сохранить"))
+    use cel_file_slots(_("СОХРАНИТЬ"))
 
 
 screen load():
 
     tag menu
 
-    use file_slots(_("Загрузить"))
+    use cel_file_slots(_("ЗАГРУЗИТЬ"))
 
 
-screen file_slots(title):
+screen cel_file_slots(title):
 
     default page_name_value = FilePageNameInputValue(pattern=_("{} страница"), auto=_("Автосохранения"), quick=_("Быстрые сохранения"))
 
-    use game_menu(title):
+    ## Цвета текущей темы ───────────────────────────────────────────────────────
+    $ _theme = persistent.menu_bg or "parchment"
+    $ _bg  = {"parchment": "#f5ebd2", "midnight": "#050a14", "indigo": "#0d0a2e"}.get(_theme, "#f5ebd2")
+    $ _fg  = {"parchment": "#191970", "midnight": "#d0c8a8", "indigo": "#c8bce8"}.get(_theme, "#191970")
+    $ _hov = {"parchment": "#b41e1e", "midnight": "#ffc864", "indigo": "#d0a0ff"}.get(_theme, "#b41e1e")
 
-        fixed:
+    ## Фон ──────────────────────────────────────────────────────────────────────
+    add Solid(_bg)
 
-            ## Это гарантирует, что ввод будет принимать enter перед остальными
-            ## кнопками.
-            order_reverse True
+    ## Звёзды-украшения по краям экрана ─────────────────────────────────────────
+    for st_x, st_y, st_sz, st_sym in [
+            (70,   45, 22, "✦"), (190, 135, 14, "✧"), (330,  70, 10, "★"),
+            (550, 165, 12, "✦"), (740,  48,  9, "✧"), (960, 115, 16, "★"),
+            (1200, 58, 11, "✦"), (1410, 138, 13, "✧"), (1630,  52, 10, "★"),
+            (1760, 175, 18, "✦"), (1875,  88, 12, "✧"),
+            (58,  835, 14, "✧"), (255, 952, 10, "✦"), (505, 898, 12, "★"),
+            (785, 972, 11, "✦"), (1055, 918,  9, "✧"), (1285, 985, 14, "★"),
+            (1505, 942, 11, "✦"), (1710, 908, 13, "✧"), (1882, 972, 10, "★"),
+            (28,  355, 10, "✦"), (28,  610,  8, "✧"),
+            (1900, 405, 11, "✦"), (1900, 655,  9, "✧"),
+    ]:
+        text st_sym:
+            xpos st_x
+            ypos st_y
+            size st_sz
+            color "#ffc864"
 
-            ## Номер страницы, который может быть изменён посредством клика на
-            ## кнопку.
+    ## Горизонтальные разделители ────────────────────────────────────────────────
+    text "─ ─ ─  ✦  ─ ─ ─":
+        xalign 0.5
+        ypos 168
+        size 22
+        color "#ffc864"
+
+    text "─ ─ ─  ✦  ─ ─ ─":
+        xalign 0.5
+        ypos 875
+        size 22
+        color "#ffc864"
+
+    ## Заголовок ─────────────────────────────────────────────────────────────────
+    vbox:
+        xalign 0.5
+        ypos 48
+        spacing 10
+
+        text title:
+            xalign 0.5
+            size 72
+            color _fg
+
+        text "☽  ✦  ☾":
+            xalign 0.5
+            size 24
+            color "#ffc864"
+
+    ## Имя страницы (редактируемое) ───────────────────────────────────────────────
+    button:
+        xalign 0.5
+        ypos 190
+        background None
+        key_events True
+        action page_name_value.Toggle()
+
+        input:
+            value page_name_value
+            color _fg
+            hover_color "#ffc864"
+            size 22
+            xalign 0.5
+
+    ## Таблица слотов ─────────────────────────────────────────────────────────────
+    grid gui.file_slot_cols gui.file_slot_rows:
+        xalign 0.5
+        ypos 222
+        spacing gui.slot_spacing
+
+        for i in range(gui.file_slot_cols * gui.file_slot_rows):
+
+            $ slot = i + 1
+
             button:
-                style "page_label"
+                action FileAction(slot)
+                background Solid("#0d0a2e88")
+                hover_background Solid("#ffc86420")
+                xsize gui.slot_button_width
+                ysize gui.slot_button_height
+                padding (8, 8)
 
-                key_events True
-                xalign 0.5
-                action page_name_value.Toggle()
+                has vbox
 
-                input:
-                    style "page_label_text"
-                    value page_name_value
+                add FileScreenshot(slot) xalign 0.5
 
-            ## Таблица слотов.
-            grid gui.file_slot_cols gui.file_slot_rows:
-                style_prefix "slot"
-
-                xalign 0.5
-                yalign 0.5
-
-                spacing gui.slot_spacing
-
-                for i in range(gui.file_slot_cols * gui.file_slot_rows):
-
-                    $ slot = i + 1
-
-                    button:
-                        action FileAction(slot)
-
-                        has vbox
-
-                        add FileScreenshot(slot) xalign 0.5
-
-                        text FileTime(slot, format=_("{#file_time}%A, %d %B %Y, %H:%M"), empty=_("Пустой слот")):
-                            style "slot_time_text"
-
-                        text FileSaveName(slot):
-                            style "slot_name_text"
-
-                        key "save_delete" action FileDelete(slot)
-
-            ## Кнопки для доступа к другим страницам.
-            vbox:
-                style_prefix "page"
-
-                xalign 0.5
-                yalign 1.0
-
-                hbox:
+                text FileTime(slot, format=_("{#file_time}%A, %d %B %Y, %H:%M"), empty=_("Пустой слот")):
+                    color _fg
+                    size 19
                     xalign 0.5
 
-                    spacing gui.page_spacing
+                text FileSaveName(slot):
+                    color "#ffc864"
+                    size 19
+                    xalign 0.5
 
-                    textbutton _("<") action FilePagePrevious()
-                    key "save_page_prev" action FilePagePrevious()
+                key "save_delete" action FileDelete(slot)
 
-                    if config.has_autosave:
-                        textbutton _("{#auto_page}А") action FilePage("auto")
+    ## Навигация по страницам ─────────────────────────────────────────────────────
+    hbox:
+        xalign 0.5
+        ypos 912
+        spacing 8
 
-                    if config.has_quicksave:
-                        textbutton _("{#quick_page}Б") action FilePage("quick")
+        key "save_page_prev" action FilePagePrevious()
+        key "save_page_next" action FilePageNext()
 
-                    ## range(1, 10) задаёт диапазон значений от 1 до 9.
-                    for page in range(1, 10):
-                        textbutton "[page]" action FilePage(page)
+        textbutton _("❮"):
+            action FilePagePrevious()
+            style "pref_celestial_button"
+            text_color _fg
+            text_hover_color _hov
+            xsize 50
 
-                    textbutton _(">") action FilePageNext()
-                    key "save_page_next" action FilePageNext()
+        if config.has_autosave:
+            textbutton _("{#auto_page}А"):
+                action FilePage("auto")
+                style "pref_celestial_button"
+                text_color _fg
+                text_hover_color _hov
+                text_selected_color "#ffc864"
+                xsize 50
 
-                if config.has_sync:
-                    if CurrentScreenName() == "save":
-                        textbutton _("Загрузить Sync"):
-                            action UploadSync()
-                            xalign 0.5
-                    else:
-                        textbutton _("Скачать Sync"):
-                            action DownloadSync()
-                            xalign 0.5
+        if config.has_quicksave:
+            textbutton _("{#quick_page}Б"):
+                action FilePage("quick")
+                style "pref_celestial_button"
+                text_color _fg
+                text_hover_color _hov
+                text_selected_color "#ffc864"
+                xsize 50
 
+        for page in range(1, 10):
+            textbutton "[page]":
+                action FilePage(page)
+                style "pref_celestial_button"
+                text_color _fg
+                text_hover_color _hov
+                text_selected_color "#ffc864"
+                xsize 50
 
-style page_label is gui_label
-style page_label_text is gui_label_text
-style page_button is gui_button
-style page_button_text is gui_button_text
+        textbutton _("❯"):
+            action FilePageNext()
+            style "pref_celestial_button"
+            text_color _fg
+            text_hover_color _hov
+            xsize 50
 
-style slot_button is gui_button
-style slot_button_text is gui_button_text
-style slot_time_text is slot_button_text
-style slot_name_text is slot_button_text
+        if config.has_sync:
+            if CurrentScreenName() == "save":
+                textbutton _("↑ Sync"):
+                    action UploadSync()
+                    style "pref_celestial_button"
+                    text_color _fg
+                    text_hover_color _hov
+            else:
+                textbutton _("↓ Sync"):
+                    action DownloadSync()
+                    style "pref_celestial_button"
+                    text_color _fg
+                    text_hover_color _hov
 
-style page_label:
-    xpadding 75
-    ypadding 5
-    xalign 0.5
-
-style page_label_text:
-    textalign 0.5
-    layout "subtitle"
-    hover_color gui.hover_color
-
-style page_button:
-    properties gui.button_properties("page_button")
-
-style page_button_text:
-    properties gui.text_properties("page_button")
-
-style slot_button:
-    properties gui.button_properties("slot_button")
-
-style slot_button_text:
-    properties gui.text_properties("slot_button")
+    ## Кнопка «Вернуться» ────────────────────────────────────────────────────────
+    textbutton "✦   Вернуться":
+        action Return()
+        style "main_celestial_button"
+        text_color _fg
+        text_hover_color _hov
+        xalign 0.5
+        ypos 960
 
 
 ## Экран настроек ##############################################################
@@ -1324,53 +1381,63 @@ screen confirm(message, yes_action, no_action):
 
     zorder 200
 
-    style_prefix "confirm"
+    ## Цвета текущей темы ───────────────────────────────────────────────────────
+    $ _theme = persistent.menu_bg or "parchment"
+    $ _fg  = {"parchment": "#191970", "midnight": "#d0c8a8", "indigo": "#c8bce8"}.get(_theme, "#191970")
+    $ _hov = {"parchment": "#b41e1e", "midnight": "#ffc864", "indigo": "#d0a0ff"}.get(_theme, "#b41e1e")
 
-    add "gui/overlay/confirm.png"
+    ## Затемняющий оверлей ───────────────────────────────────────────────────────
+    add Solid("#0d0a2e99")
 
+    ## Диалоговое окно ────────────────────────────────────────────────────────────
     frame:
+        xalign 0.5
+        yalign 0.5
+        xsize 720
+        padding (60, 50)
+        background Solid("#0d0a2ef2")
 
         vbox:
-            xalign .5
-            yalign .5
-            spacing 45
+            xalign 0.5
+            spacing 36
 
-            label _(message):
-                style "confirm_prompt"
+            text "☽  ✦  ☾":
                 xalign 0.5
+                size 22
+                color "#ffc864"
+
+            text _(message):
+                xalign 0.5
+                textalign 0.5
+                layout "subtitle"
+                size 30
+                color _fg
+
+            text "─ ─ ─  ✦  ─ ─ ─":
+                xalign 0.5
+                size 18
+                color "#ffc864"
 
             hbox:
                 xalign 0.5
-                spacing 150
+                spacing 80
 
-                textbutton _("Да") action yes_action
-                textbutton _("Нет") action no_action
+                textbutton _("Да"):
+                    action yes_action
+                    style "pref_celestial_button"
+                    text_color _fg
+                    text_hover_color "#ffc864"
+                    xsize 160
+
+                textbutton _("Нет"):
+                    action no_action
+                    style "pref_celestial_button"
+                    text_color _fg
+                    text_hover_color _hov
+                    xsize 160
 
     ## Правый клик и esc, как ответ "Нет".
     key "game_menu" action no_action
-
-
-style confirm_frame is gui_frame
-style confirm_prompt is gui_prompt
-style confirm_prompt_text is gui_prompt_text
-style confirm_button is gui_medium_button
-style confirm_button_text is gui_medium_button_text
-
-style confirm_frame:
-    background Frame([ "gui/confirm_frame.png", "gui/frame.png"], gui.confirm_frame_borders, tile=gui.frame_tile)
-    padding gui.confirm_frame_borders.padding
-    xalign .5
-    yalign .5
-
-style confirm_prompt_text:
-    textalign 0.5
-    layout "subtitle"
-
-style confirm_button:
-    properties gui.button_properties("confirm_button")
-
-style confirm_button_text:
-    properties gui.text_properties("confirm_button")
 
 
 ## Экран индикатора пропуска ###################################################
